@@ -1,0 +1,5 @@
+# AgriConnect ML Training Data Directory
+# Place PlantVillage dataset under:
+# data/plantvillage/
+# Or mandi historical CSV data under:
+# data/mandi_prices.csv

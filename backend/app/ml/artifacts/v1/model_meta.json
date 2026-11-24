@@ -1,0 +1,13 @@
+{
+  "model_name": "AgriConnect MobileNetV2 Leaf Disease Classifier",
+  "version": "v1.0",
+  "architecture": "MobileNetV2 Transfer Learning",
+  "input_shape": [224, 224, 3],
+  "num_classes": 38,
+  "confidence_threshold": 0.60,
+  "uncertain_flag_rule": "confidence < 0.60",
+  "dataset": "PlantVillage (54,303 images)",
+  "framework": "TensorFlow / Keras 3.x",
+  "export_format": "disease_model.keras",
+  "status": "ready_for_user_weights"
+}

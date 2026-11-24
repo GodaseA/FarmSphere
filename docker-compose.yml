@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: agriconnect_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agri}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-agriconnect}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agriconnect_backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-agri}:${POSTGRES_PASSWORD:-change_me}@postgres:5432/${POSTGRES_DB:-agriconnect}
+      SECRET_KEY: ${SECRET_KEY:-generate_a_long_random_string_agriconnect_2026}
+      ACCESS_TOKEN_MINUTES: 15
+      REFRESH_TOKEN_DAYS: 7
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+      MODEL_VERSION: v1.0
+      DISEASE_CONFIDENCE_THRESHOLD: 0.60
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-rzp_test_xxx}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-xxx}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "python -m app.db.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: agriconnect_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  pgdata:
